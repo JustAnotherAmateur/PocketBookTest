@@ -111,39 +111,40 @@ RawImageData decode(const RawImageData::PixelContainer& input_data, const std::s
         }
         else
         {
-            std::size_t col = 0;
-
-            switch (input_data[index++])
+            for (auto col = 0; col < decoded_image.m_width; )
             {
-            case WHITE_BLOCK_MARKER:
+                switch (input_data[index++])
                 {
-                for (auto i = 0; (i < block_width) && (col < decoded_image.m_width); ++i, ++col)
+                case WHITE_BLOCK_MARKER:
                 {
-                    decoded_image.m_pixel_data.emplace_back(WHITE_PIXEL);
+                    for (auto i = 0; (i < block_width) && (col < decoded_image.m_width); ++i, ++col)
+                    {
+                        decoded_image.m_pixel_data.emplace_back(WHITE_PIXEL);
+                    }
                 }
-                }
-            break;
+                break;
 
-            case BLACK_BLOCK_MARKER:
+                case BLACK_BLOCK_MARKER:
                 {
                     for (auto i = 0; (i < block_width) && (col < decoded_image.m_width); ++i, ++col)
                     {
                         decoded_image.m_pixel_data.emplace_back(BLACK_PIXEL);
                     }
                 }
-            break;
+                break;
 
-            case MIXED_BLOCK_MARKER:
+                case MIXED_BLOCK_MARKER:
                 {
                     for (auto i = 0; (i < block_width) && (col < decoded_image.m_width); ++i, ++col, ++index)
                     {
                         decoded_image.m_pixel_data.emplace_back(input_data[index]);
                     }
                 }
-            break;
+                break;
 
-            // default: throw
-            } // switch
+                // default: throw
+                } // switch
+            } // for (auto col
         } // else is_row_white
     } // for (auto row
 
