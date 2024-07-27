@@ -7,3 +7,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(Codec)
 add_subdirectory(CodecTest)
+add_subdirectory(GUI)
