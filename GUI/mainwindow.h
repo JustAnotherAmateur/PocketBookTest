@@ -1,7 +1,9 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
+#include <QDir>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,7 +19,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void SetFolder(const QDir& folder);
+
+private slots:
+    void onFolderSelectButtonClicked();
+
 private:
-    Ui::MainWindow *ui;
+    std::unique_ptr<Ui::MainWindow> ui;
 };
-#endif // MAINWINDOW_H
