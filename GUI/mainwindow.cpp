@@ -6,8 +6,12 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(std::make_unique<Ui::MainWindow>())
+    , images_model(new ImagesTableModel(this))
 {
     ui->setupUi(this);
+
+    ui->imagesTableView->setModel(images_model);
+
     connect(ui->folderSelectButton, &QAbstractButton::clicked,
             this, &MainWindow::onFolderSelectButtonClicked);
 }
@@ -19,6 +23,7 @@ MainWindow::~MainWindow()
 void MainWindow::SetFolder(const QDir& folder)
 {
     ui->folderPathLineEdit->setText(folder.absolutePath());
+    images_model->setFolder(folder);
 }
 
 void MainWindow::onFolderSelectButtonClicked()

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "imagestablemodel.h"
+
 #include <QMainWindow>
 #include <QDir>
 
@@ -26,4 +28,6 @@ private slots:
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;
+
+    ImagesTableModel* images_model = nullptr;
 };
