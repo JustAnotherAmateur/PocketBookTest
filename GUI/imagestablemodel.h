@@ -2,6 +2,9 @@
 
 #include <QAbstractTableModel>
 #include <QDir>
+#include <QFileSystemWatcher>
+
+#include <memory>
 
 class ImagesTableModel : public QAbstractTableModel
 {
@@ -18,9 +21,10 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
-private:
-    QFileInfoList m_image_files;
+private slots:
+    void updateFileList(const QString& fodler_path);
 
+private:
     enum EColumn
     {
         Name = 0,
@@ -28,4 +32,7 @@ private:
         Size = 2,
         Count = 3
     };
+
+    QFileInfoList m_image_files;
+    std::unique_ptr<QFileSystemWatcher> m_folder_watcher;
 };

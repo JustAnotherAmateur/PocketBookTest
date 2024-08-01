@@ -7,11 +7,13 @@ ImagesTableModel::ImagesTableModel(QObject *parent)
 
 void ImagesTableModel::setFolder(const QDir &folder)
 {
-    QStringList name_filters;
-    name_filters << "*.bmp" << "*.png" << "*.barch";
-    beginResetModel();
-    m_image_files = folder.entryInfoList(name_filters, QDir::Files);
-    endResetModel();
+    m_folder_watcher.reset(new QFileSystemWatcher());
+    m_folder_watcher->addPath(folder.absolutePath());
+
+    connect(m_folder_watcher.get(), &QFileSystemWatcher::directoryChanged,
+            this, &ImagesTableModel::updateFileList);
+
+    updateFileList(folder.absolutePath());
 }
 
 int ImagesTableModel::rowCount(const QModelIndex &parent) const
@@ -66,4 +68,14 @@ QVariant ImagesTableModel::data(const QModelIndex &index, int role) const
     }
 
     return QVariant();
+}
+
+void ImagesTableModel::updateFileList(const QString& folder_path)
+{
+    QDir folder(folder_path);
+    QStringList name_filters;
+    name_filters << "*.bmp" << "*.png" << "*.barch";
+    beginResetModel();
+    m_image_files = folder.entryInfoList(name_filters, QDir::Files);
+    endResetModel();
 }
