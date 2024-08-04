@@ -2,6 +2,8 @@
 
 ImagesTableModel::ImagesTableModel(QObject *parent)
     : QAbstractTableModel(parent)
+    , m_sort_column(EColumn::Name)
+    , m_sort_order(Qt::AscendingOrder)
 {
 }
 
@@ -70,6 +72,15 @@ QVariant ImagesTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+void ImagesTableModel::sort(int column, Qt::SortOrder order)
+{
+    m_sort_column = static_cast<EColumn>(column);
+    m_sort_order = order;
+    beginResetModel();
+    sort_internal();
+    endResetModel();
+}
+
 void ImagesTableModel::updateFileList(const QString& folder_path)
 {
     QDir folder(folder_path);
@@ -77,5 +88,28 @@ void ImagesTableModel::updateFileList(const QString& folder_path)
     name_filters << "*.bmp" << "*.png" << "*.barch";
     beginResetModel();
     m_image_files = folder.entryInfoList(name_filters, QDir::Files);
+    sort_internal();
     endResetModel();
+}
+
+void ImagesTableModel::sort_internal()
+{
+    const auto comparator = [this](const QFileInfo& lhs, const QFileInfo& rhs)
+    {
+        switch (m_sort_column)
+        {
+        case EColumn::Type:
+            return (m_sort_order == Qt::AscendingOrder) ? (lhs.suffix() < rhs.suffix()) :
+                       (lhs.suffix() > rhs.suffix());
+        case EColumn::Size:
+            return (m_sort_order == Qt::AscendingOrder) ? (lhs.size() < rhs.size()) :
+                       (lhs.size() > rhs.size());
+        case EColumn::Name:
+        default:
+            return (m_sort_order == Qt::AscendingOrder) ? (lhs.fileName() < rhs.fileName()) :
+                       (lhs.fileName() > rhs.fileName());
+        }
+    };
+
+    std::sort(m_image_files.begin(), m_image_files.end(), comparator);
 }

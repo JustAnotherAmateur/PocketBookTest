@@ -21,8 +21,13 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
+
 private slots:
     void updateFileList(const QString& fodler_path);
+
+private:
+    void sort_internal();
 
 private:
     enum EColumn
@@ -35,4 +40,7 @@ private:
 
     QFileInfoList m_image_files;
     std::unique_ptr<QFileSystemWatcher> m_folder_watcher;
+
+    EColumn m_sort_column;
+    Qt::SortOrder m_sort_order;
 };
