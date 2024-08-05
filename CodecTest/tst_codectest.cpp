@@ -42,7 +42,7 @@ void CodecTest::test_data()
                                                  0xFF, 0xFF, 0xFF, 0xFF,
                                                  0xFF, 0xFF, 0xFF, 0xFF
                                              })
-                             << create_vector({'B', 'A', 4, 2,
+                             << create_vector({'B', 'A', 0, 4, 0, 2,
                                                1, 1});
 
     QTest::newRow("basic_2") << RawImageData(4, 2,
@@ -50,7 +50,7 @@ void CodecTest::test_data()
                                                  0xFF, 0xFF, 0xFF, 0xFF,
                                                  0x00, 0x00, 0x00, 0x00
                                              })
-                             << create_vector({'B', 'A', 4, 2,
+                             << create_vector({'B', 'A', 0, 4, 0, 2,
                                                1, 0,
                                                0b10});
 
@@ -59,7 +59,7 @@ void CodecTest::test_data()
                                                  0xF1, 0xFF, 0xFF, 0xFF,
                                                  0x00, 0x00, 0x00, 0x00
                                              })
-                             << create_vector({'B', 'A', 4, 2,
+                             << create_vector({'B', 'A', 0, 4, 0, 2,
                                                0, 0,
                                                0b11, 0xF1, 0xFF, 0xFF, 0xFF,
                                                0b10});
@@ -71,7 +71,7 @@ void CodecTest::test_data()
                                                  0x00, 0x00, 0x00, 0x00, 0x05, 0x05, 0x06, 0x06,
                                                  0x07, 0x07, 0x08, 0x08, 0xFF, 0xFF, 0xFF, 0xFF
                                              })
-                             << create_vector({'B', 'A', 8, 4,
+                             << create_vector({'B', 'A', 0, 8, 0, 4,
                                                1, 0, 0, 0,
                                                0b10, 0b10,
                                                0b10, 0b11, 0x05, 0x05, 0x06, 0x06,
@@ -81,14 +81,14 @@ void CodecTest::test_data()
                                                       {
                                                           0xFF
                                                       })
-                                      << create_vector({'B', 'A', 1, 1,
+                                      << create_vector({'B', 'A', 0, 1, 0, 1,
                                                         1});
 
     QTest::newRow("irregular_size_2") << RawImageData(1, 1,
                                                       {
                                                           0x00
                                                       })
-                                      << create_vector({'B', 'A', 1, 1,
+                                      << create_vector({'B', 'A', 0, 1, 0, 1,
                                                         0,
                                                         0b10});
 
@@ -97,7 +97,7 @@ void CodecTest::test_data()
                                                           0x05, 0x05, 0x00, 0x00, 0x00, 0x00,
                                                           0xFF, 0xFF, 0xFF, 0xFF, 0x07, 0x07
                                                       })
-                                      << create_vector({'B', 'A', 6, 2,
+                                      << create_vector({'B', 'A', 0, 6, 0, 2,
                                                         0, 0,
                                                         0b11, 0x05, 0x05, 0x00, 0x00, 0b10,
                                                         0b00, 0b11, 0x07, 0x07});

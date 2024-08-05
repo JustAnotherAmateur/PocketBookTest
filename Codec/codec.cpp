@@ -19,9 +19,10 @@ RawImageData::PixelContainer encode(const RawImageData& input_image, const std::
     coded_data.emplace_back(static_cast<PixelType>('B'));
     coded_data.emplace_back(static_cast<PixelType>('A'));
 
-    // TODO: handle cases when sizeof(width) > sizeof(PixelType)
-    coded_data.emplace_back(static_cast<PixelType>(input_image.m_width));
-    coded_data.emplace_back(static_cast<PixelType>(input_image.m_height));
+    coded_data.emplace_back(static_cast<PixelType>((input_image.m_width >> 8) & 0xFF));
+    coded_data.emplace_back(static_cast<PixelType>((input_image.m_width >> 0) & 0xFF));
+    coded_data.emplace_back(static_cast<PixelType>((input_image.m_height >> 8) & 0xFF));
+    coded_data.emplace_back(static_cast<PixelType>((input_image.m_height >> 0) & 0xFF));
 
     const auto white_rows_first_index = coded_data.size();
     for (auto i = 0; i < input_image.m_height; ++i)
@@ -90,8 +91,13 @@ RawImageData decode(const RawImageData::PixelContainer& input_data, const std::s
     ++index;
     ++index;
 
-    decoded_image.m_width = input_data[index++];
-    decoded_image.m_height = input_data[index++];
+    const std::size_t width_high_byte = input_data[index++];
+    const std::size_t width_low_byte = input_data[index++];
+    decoded_image.m_width = (width_high_byte << 8) | (width_low_byte << 0);
+
+    const std::size_t height_high_byte = input_data[index++];
+    const std::size_t height_low_byte = input_data[index++];
+    decoded_image.m_height = (height_high_byte << 8) | (height_low_byte << 0);
     decoded_image.m_pixel_data.reserve(decoded_image.m_width * decoded_image.m_height);
 
     std::vector<bool> is_row_white(decoded_image.m_height);
