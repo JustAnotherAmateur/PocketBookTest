@@ -2,6 +2,7 @@
 #include "./ui_mainwindow.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -17,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->imagesTableView, &QAbstractItemView::doubleClicked,
             this, &MainWindow::onItemDoubleClicked);
+
+    connect(images_model, &ImagesTableModel::error, this, &MainWindow::onError);
 }
 
 MainWindow::~MainWindow()
@@ -46,4 +49,9 @@ void MainWindow::onFolderSelectButtonClicked()
 void MainWindow::onItemDoubleClicked(const QModelIndex &index)
 {
     images_model->processItem(index);
+}
+
+void MainWindow::onError(const QString& error_message)
+{
+    QMessageBox::critical(ui->imagesTableView, "Error", error_message);
 }

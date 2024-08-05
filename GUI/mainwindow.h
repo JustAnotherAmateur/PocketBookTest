@@ -26,6 +26,7 @@ public:
 private slots:
     void onFolderSelectButtonClicked();
     void onItemDoubleClicked(const QModelIndex& index);
+    void onError(const QString& error_message);
 
 private:
     std::unique_ptr<Ui::MainWindow> ui;

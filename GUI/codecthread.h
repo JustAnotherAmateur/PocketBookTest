@@ -17,6 +17,9 @@ public:
 
     virtual void run() override;
 
+signals:
+    void error(const QString& message);
+
 private:
     const QString m_source_filepath;
     const QString m_target_filepath;

@@ -24,10 +24,14 @@ public:
 
     virtual void sort(int column, Qt::SortOrder order = Qt::AscendingOrder) override;
 
+signals:
+    void error(const QString& error_message);
+
 private slots:
     void updateFileList(const QString& fodler_path);
     void threadStarted();
     void threadFinished();
+    void onError(const QString& error_message);
 
 private:
     void sort_internal();

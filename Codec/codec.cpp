@@ -1,10 +1,14 @@
 #include "codec.h"
 
 #include <limits>
+#include <stdexcept>
 
 namespace codec
 {
 using PixelType = RawImageData::PixelType;
+
+const PixelType FORMAT_MARKER_1 = 'B';
+const PixelType FORMAT_MARKER_2 = 'A';
 
 const PixelType WHITE_PIXEL = std::numeric_limits<PixelType>::max();
 const PixelType BLACK_PIXEL = 0;
@@ -16,8 +20,8 @@ const PixelType MIXED_BLOCK_MARKER = 0b11;
 RawImageData::PixelContainer encode(const RawImageData& input_image, const std::size_t block_width)
 {
     RawImageData::PixelContainer coded_data;
-    coded_data.emplace_back(static_cast<PixelType>('B'));
-    coded_data.emplace_back(static_cast<PixelType>('A'));
+    coded_data.emplace_back(FORMAT_MARKER_1);
+    coded_data.emplace_back(FORMAT_MARKER_2);
 
     coded_data.emplace_back(static_cast<PixelType>((input_image.m_width >> 8) & 0xFF));
     coded_data.emplace_back(static_cast<PixelType>((input_image.m_width >> 0) & 0xFF));
@@ -87,9 +91,10 @@ RawImageData decode(const RawImageData::PixelContainer& input_data, const std::s
     RawImageData decoded_image{};
 
     std::size_t index = 0;
-    // TODO: check BA
-    ++index;
-    ++index;
+    if (input_data[index++] != FORMAT_MARKER_1)
+        throw std::runtime_error("Invalid format");
+    if (input_data[index++] != FORMAT_MARKER_2)
+        throw std::runtime_error("Invalid format");
 
     const std::size_t width_high_byte = input_data[index++];
     const std::size_t width_low_byte = input_data[index++];

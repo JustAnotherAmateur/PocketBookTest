@@ -40,6 +40,10 @@ void ImagesTableModel::processItem(const QModelIndex& index)
         mode = CodecThread::EMode::Decode;
         m_process_suffix = " Decoding...";
     }
+    else
+    {
+        emit error("Unsupported format");
+    }
 
     if (!m_target_filename.isEmpty())
     {
@@ -48,6 +52,7 @@ void ImagesTableModel::processItem(const QModelIndex& index)
 
         connect(thread, &QThread::started, this, &ImagesTableModel::threadStarted, Qt::QueuedConnection);
         connect(thread, &QThread::finished, this, &ImagesTableModel::threadFinished, Qt::QueuedConnection);
+        connect(thread, &CodecThread::error, this, &ImagesTableModel::onError, Qt::QueuedConnection);
         connect(thread, &QThread::finished, thread, &QObject::deleteLater, Qt::QueuedConnection);
 
         thread->start();
@@ -159,6 +164,11 @@ void ImagesTableModel::threadFinished()
     m_processed_filename = "";
     m_target_filename = "";
     m_process_suffix = "";
+}
+
+void ImagesTableModel::onError(const QString& error_message)
+{
+    emit error(error_message);
 }
 
 void ImagesTableModel::sort_internal()

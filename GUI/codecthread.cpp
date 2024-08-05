@@ -6,17 +6,20 @@
 #include <QFile>
 
 #include <algorithm>
+#include <stdexcept>
 
 namespace
 {
 codec::RawImageData read_image(const QString& filename)
 {
     QImage image(filename);
-    // ToDo: isGreyscale check
     codec::RawImageData image_data;
     image_data.m_width = image.width();
     image_data.m_height = image.height();
     image_data.m_pixel_data.reserve(image_data.m_width * image_data.m_height);
+
+    if ((image_data.m_width == 0) || (image_data.m_height == 0))
+        throw std::runtime_error("Empty image");
 
     for (auto y = 0; y < image.height(); ++y)
     {
@@ -30,15 +33,21 @@ codec::RawImageData read_image(const QString& filename)
 
 void write_image(const codec::RawImageData& image_data, const QString& filename)
 {
+    QFile file(filename);
+    if (file.exists())
+        throw std::runtime_error("File already exists");
+
     const auto bytes_per_line = image_data.m_width;
     QImage image(image_data.m_pixel_data.data(), image_data.m_width, image_data.m_height, bytes_per_line, QImage::Format_Grayscale8);
-    image.save(filename);
+    if (!image.save(filename))
+        throw std::runtime_error("Failed to save image");
 }
 
 codec::RawImageData::PixelContainer read_encoded_data(const QString& filename)
 {
     QFile file(filename);
-    file.open(QFile::ReadOnly);
+    if (!file.open(QFile::ReadOnly))
+        throw std::runtime_error("Failed to open file");
     const auto bytes = file.readAll();
     file.close();
 
@@ -54,7 +63,8 @@ void write_encoded_data(const codec::RawImageData::PixelContainer& data, const Q
     std::copy(data.cbegin(), data.cend(), bytes.begin());
 
     QFile file(filename);
-    file.open(QFile::NewOnly);
+    if (!file.open(QFile::NewOnly))
+        throw std::runtime_error("File already exists");
     file.write(bytes);
     file.close();
 }
@@ -85,12 +95,19 @@ CodecThread::CodecThread(QObject* parent, const QString &source_filepath, const 
 
 void CodecThread::run()
 {
-    if (m_mode == EMode::Encode)
+    try
     {
-        encode_file(m_source_filepath, m_target_filepath);
+        if (m_mode == EMode::Encode)
+        {
+            encode_file(m_source_filepath, m_target_filepath);
+        }
+        else if (m_mode == EMode::Decode)
+        {
+            decode_file(m_source_filepath, m_target_filepath);
+        }
     }
-    else if (m_mode == EMode::Decode)
+    catch (const std::runtime_error& e)
     {
-        decode_file(m_source_filepath, m_target_filepath);
+        emit error(QString::fromUtf8(e.what()));
     }
 }
