@@ -9,7 +9,4 @@ add_library(Codec SHARED
   rawimagedata.h
 )
 
-#set_property(TARGET Codec PROPERTY IMPORTED_LOCATION "${Codec_BINARY_DIR}/libCodec.dll")
-#set_property(TARGET Codec PROPERTY IMPORTED_IMPLIB "${Codec_BINARY_DIR}/libCodec.dll.a")
-
 target_compile_definitions(Codec PRIVATE CODEC_LIBRARY)
