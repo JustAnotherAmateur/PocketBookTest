@@ -1,5 +1,7 @@
 #include "imagestablemodel.h"
 
+#include "codecthread.h"
+
 ImagesTableModel::ImagesTableModel(QObject *parent)
     : QAbstractTableModel(parent)
     , m_sort_column(EColumn::Name)
@@ -16,6 +18,40 @@ void ImagesTableModel::setFolder(const QDir &folder)
             this, &ImagesTableModel::updateFileList);
 
     updateFileList(folder.absolutePath());
+}
+
+void ImagesTableModel::processItem(const QModelIndex& index)
+{
+    if (!index.isValid())
+        return;
+
+    const auto file_info = m_image_files.at(index.row());
+    m_target_filename = "";
+    CodecThread::EMode mode;
+    if (file_info.suffix() == "bmp")
+    {
+        m_target_filename = file_info.baseName() + "_packed.barch";
+        mode = CodecThread::EMode::Encode;
+        m_process_suffix = " Encoding...";
+    }
+    else if (file_info.suffix() == "barch")
+    {
+        m_target_filename = file_info.baseName() + "_unpacked.bmp";
+        mode = CodecThread::EMode::Decode;
+        m_process_suffix = " Decoding...";
+    }
+
+    if (!m_target_filename.isEmpty())
+    {
+        m_processed_filename = file_info.fileName();
+        auto thread = new CodecThread(this, file_info.absoluteFilePath(), file_info.dir().absolutePath() + "/" + m_target_filename, mode);
+
+        connect(thread, &QThread::started, this, &ImagesTableModel::threadStarted, Qt::QueuedConnection);
+        connect(thread, &QThread::finished, this, &ImagesTableModel::threadFinished, Qt::QueuedConnection);
+        connect(thread, &QThread::finished, thread, &QObject::deleteLater, Qt::QueuedConnection);
+
+        thread->start();
+    }
 }
 
 int ImagesTableModel::rowCount(const QModelIndex &parent) const
@@ -53,16 +89,21 @@ QVariant ImagesTableModel::headerData(int section, Qt::Orientation orientation, 
     return QVariant();
 }
 
-QVariant ImagesTableModel::data(const QModelIndex &index, int role) const
+QVariant ImagesTableModel::data(const QModelIndex& index, int role) const
 {
     if (!index.isValid() || role != Qt::DisplayRole)
         return QVariant();
 
-    auto file_info = m_image_files.at(index.row());
+    const auto file_info = m_image_files.at(index.row());
     switch (index.column())
     {
     case EColumn::Name:
-        return file_info.fileName();
+        {
+        if (file_info.fileName() == m_processed_filename)
+            return file_info.fileName() + m_process_suffix;
+        else
+            return file_info.fileName();
+        }
     case EColumn::Type:
         return file_info.suffix();
     case EColumn::Size:
@@ -92,6 +133,34 @@ void ImagesTableModel::updateFileList(const QString& folder_path)
     endResetModel();
 }
 
+void ImagesTableModel::threadStarted()
+{
+    const auto idx = index(file_index(m_processed_filename), EColumn::Name);
+    if (idx.isValid())
+        emit dataChanged(idx, idx);
+}
+
+void ImagesTableModel::threadFinished()
+{
+    const auto processed_model_idx = index(file_index(m_processed_filename), EColumn::Name);
+    if (processed_model_idx.isValid())
+        emit dataChanged(processed_model_idx, processed_model_idx);
+
+    const auto target_file_index = file_index(m_target_filename);
+    if (target_file_index >= 0)
+    {
+        // QFileSystemWatcher will detect new file as soon as it will be created, therefore empty
+        // we need to update size correctly
+        m_image_files[target_file_index].refresh();
+        const auto target_model_idx = index(target_file_index, EColumn::Size);
+        emit dataChanged(target_model_idx, target_model_idx);
+    }
+
+    m_processed_filename = "";
+    m_target_filename = "";
+    m_process_suffix = "";
+}
+
 void ImagesTableModel::sort_internal()
 {
     const auto comparator = [this](const QFileInfo& lhs, const QFileInfo& rhs)
@@ -112,4 +181,15 @@ void ImagesTableModel::sort_internal()
     };
 
     std::sort(m_image_files.begin(), m_image_files.end(), comparator);
+}
+
+int ImagesTableModel::file_index(const QString& filename) const
+{
+    for (int i = 0; i < m_image_files.size(); ++i)
+    {
+        if (m_image_files.at(i).fileName() == filename)
+            return i;
+    }
+
+    return -1;
 }

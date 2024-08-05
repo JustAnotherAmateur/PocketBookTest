@@ -14,6 +14,7 @@ public:
     explicit ImagesTableModel(QObject *parent = nullptr);
 
     void setFolder(const QDir& folder);
+    void processItem(const QModelIndex& index);
 
     virtual int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     virtual int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -25,9 +26,12 @@ public:
 
 private slots:
     void updateFileList(const QString& fodler_path);
+    void threadStarted();
+    void threadFinished();
 
 private:
     void sort_internal();
+    int file_index(const QString& filename) const;
 
 private:
     enum EColumn
@@ -43,4 +47,8 @@ private:
 
     EColumn m_sort_column;
     Qt::SortOrder m_sort_order;
+
+    QString m_processed_filename;
+    QString m_target_filename;
+    QString m_process_suffix;
 };

@@ -14,6 +14,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->folderSelectButton, &QAbstractButton::clicked,
             this, &MainWindow::onFolderSelectButtonClicked);
+
+    connect(ui->imagesTableView, &QAbstractItemView::doubleClicked,
+            this, &MainWindow::onItemDoubleClicked);
 }
 
 MainWindow::~MainWindow()
@@ -38,4 +41,9 @@ void MainWindow::onFolderSelectButtonClicked()
         QDir selected_folder = folder_dialog.directory();
         SetFolder(selected_folder);
     }
+}
+
+void MainWindow::onItemDoubleClicked(const QModelIndex &index)
+{
+    images_model->processItem(index);
 }
